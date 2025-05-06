@@ -6,24 +6,28 @@ import BottomNav from '../components/BottomNav';
 import TimeAgo from '../components/TimeAgo';
 import CategoryBadge from '../components/CategoryBadge';
 import StatusBadge from '../components/StatusBadge';
+import { useToast } from '@/hooks/use-toast';
 import { mockReports, currentUser } from '../data/mockData';
 import { 
   MapPin, 
   ThumbsUp, 
+  ThumbsDown,
   Share2, 
   MessageSquare, 
   Send, 
   User,
-  ChevronLeft 
+  ChevronLeft,
+  AlertTriangle
 } from 'lucide-react';
-import { Comment } from '../types';
+import { Comment, Report } from '../types';
 
 const ReportDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [newComment, setNewComment] = useState('');
-  const [liked, setLiked] = useState(false);
-  
-  const report = mockReports.find(r => r.id === id);
+  const [report, setReport] = useState<Report | undefined>(() => 
+    mockReports.find(r => r.id === id)
+  );
+  const { toast } = useToast();
   
   if (!report) {
     return (
@@ -53,13 +57,83 @@ const ReportDetailPage: React.FC = () => {
         createdAt: new Date(),
       };
       
-      console.log('Nouveau commentaire:', comment);
+      // Mise à jour locale (simulation)
+      setReport(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          comments: [...prev.comments, comment]
+        };
+      });
+      
       setNewComment('');
       
-      // Afficher une notification de réussite
-      alert('Commentaire ajouté!');
+      // Notification de succès
+      toast({
+        title: "Commentaire ajouté",
+        description: "Votre commentaire a été publié avec succès",
+      });
     }
   };
+
+  // Gérer les votes
+  const handleVote = (voteType: 'up' | 'down') => {
+    setReport(prev => {
+      if (!prev) return prev;
+      
+      // Si l'utilisateur a déjà voté de la même façon, on annule son vote
+      if (prev.userVoted === voteType) {
+        const updatedReport = {
+          ...prev,
+          upvotes: voteType === 'up' ? prev.upvotes - 1 : prev.upvotes,
+          downvotes: voteType === 'down' ? (prev.downvotes || 0) - 1 : (prev.downvotes || 0),
+          userVoted: null
+        };
+        
+        toast({
+          title: "Vote retiré",
+          description: "Votre vote a été retiré avec succès",
+        });
+        
+        return updatedReport;
+      }
+      
+      // Si l'utilisateur a voté dans l'autre sens précédemment
+      if (prev.userVoted && prev.userVoted !== voteType) {
+        const updatedReport = {
+          ...prev,
+          upvotes: voteType === 'up' ? prev.upvotes + 1 : prev.upvotes - 1,
+          downvotes: voteType === 'down' ? (prev.downvotes || 0) + 1 : (prev.downvotes || 0) - 1,
+          userVoted: voteType
+        };
+        
+        toast({
+          title: "Vote modifié",
+          description: `Vous avez ${voteType === 'up' ? 'approuvé' : 'désapprouvé'} ce signalement`,
+        });
+        
+        return updatedReport;
+      }
+      
+      // Premier vote de l'utilisateur
+      const updatedReport = {
+        ...prev,
+        upvotes: voteType === 'up' ? prev.upvotes + 1 : prev.upvotes,
+        downvotes: voteType === 'down' ? (prev.downvotes || 0) + 1 : (prev.downvotes || 0),
+        userVoted: voteType
+      };
+      
+      toast({
+        title: "Merci pour votre vote",
+        description: `Vous avez ${voteType === 'up' ? 'approuvé' : 'désapprouvé'} ce signalement`,
+      });
+      
+      return updatedReport;
+    });
+  };
+
+  // Récupérer le statut de récurrence du problème
+  const isRecurringProblem = report.isRecurring;
 
   return (
     <div className="min-h-screen pb-16">
@@ -83,7 +157,15 @@ const ReportDetailPage: React.FC = () => {
       <div className="px-4 py-4 border-b border-gray-100">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{report.title}</h1>
+            <h1 className="text-xl font-bold text-gray-900">
+              {report.title}
+              {isRecurringProblem && (
+                <span className="ml-2 inline-flex items-center px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
+                  <AlertTriangle className="w-3 h-3 mr-1" />
+                  Récurrent
+                </span>
+              )}
+            </h1>
             <div className="flex items-center mt-2">
               <CategoryBadge category={report.category} />
               <StatusBadge status={report.status} className="ml-2" />
@@ -91,12 +173,29 @@ const ReportDetailPage: React.FC = () => {
           </div>
           <div className="flex space-x-3">
             <button 
-              className={`p-2 rounded-full ${liked ? 'bg-blue-50 text-blue-500' : 'bg-gray-50 text-gray-500'}`}
-              onClick={() => setLiked(!liked)}
+              className={`p-2 rounded-full ${report.userVoted === 'up' ? 'bg-blue-50 text-blue-500' : 'bg-gray-50 text-gray-500'}`}
+              onClick={() => handleVote('up')}
+              aria-label="Voter pour"
             >
               <ThumbsUp className="w-5 h-5" />
             </button>
-            <button className="p-2 rounded-full bg-gray-50 text-gray-500">
+            <button
+              className={`p-2 rounded-full ${report.userVoted === 'down' ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-500'}`}
+              onClick={() => handleVote('down')}
+              aria-label="Voter contre"
+            >
+              <ThumbsDown className="w-5 h-5" />
+            </button>
+            <button 
+              className="p-2 rounded-full bg-gray-50 text-gray-500"
+              onClick={() => {
+                // Dans une vraie app, implémentez le partage ici
+                toast({
+                  title: "Partage",
+                  description: "Fonctionnalité de partage à implémenter",
+                });
+              }}
+            >
               <Share2 className="w-5 h-5" />
             </button>
           </div>
@@ -120,11 +219,36 @@ const ReportDetailPage: React.FC = () => {
         <p className="text-gray-800">{report.description}</p>
         
         <div className="flex items-center mt-4 pt-4 border-t border-gray-100">
-          <div className="flex items-center text-gray-600 text-sm">
-            <ThumbsUp className="w-4 h-4 mr-1.5" />
-            <span>{report.upvotes} personne{report.upvotes !== 1 ? 's' : ''} {report.upvotes !== 1 ? 'trouvent' : 'trouve'} ce signalement utile</span>
+          <div className="flex items-center mr-4">
+            <div className="flex items-center text-gray-600 text-sm">
+              <ThumbsUp className="w-4 h-4 mr-1.5" />
+              <span>{report.upvotes} personne{report.upvotes !== 1 ? 's' : ''}</span>
+            </div>
           </div>
+          
+          {report.downvotes && report.downvotes > 0 && (
+            <div className="flex items-center">
+              <div className="flex items-center text-gray-600 text-sm">
+                <ThumbsDown className="w-4 h-4 mr-1.5" />
+                <span>{report.downvotes} personne{report.downvotes !== 1 ? 's' : ''}</span>
+              </div>
+            </div>
+          )}
         </div>
+        
+        {/* Journal de transparence (si disponible) */}
+        {report.viewedBy && report.viewedBy.length > 0 && (
+          <div className="mt-4 pt-2 border-t border-gray-100">
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Journal d'actions</h3>
+            <div className="space-y-1.5">
+              {report.viewedBy.map((view, i) => (
+                <div key={i} className="text-xs text-gray-600">
+                  {view.action ? view.action : "Vu par"} <span className="font-medium">{view.organizationName}</span> le {new Date(view.viewedAt).toLocaleDateString('fr-FR')}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Commentaires */}

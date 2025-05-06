@@ -13,6 +13,7 @@ import {
   NewReportPage,
   ReportSuccessPage,
   ProfilePage,
+  AlertPage,
   NotFoundPage
 } from "./pages";
 
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/new-report" element={<NewReportPage />} />
           <Route path="/report-success" element={<ReportSuccessPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/alert" element={<AlertPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>

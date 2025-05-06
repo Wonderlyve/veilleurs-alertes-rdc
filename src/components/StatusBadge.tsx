@@ -8,12 +8,14 @@ interface StatusBadgeProps {
   status: Status;
   showLabel?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ 
   status, 
   showLabel = true,
-  size = 'md' 
+  size = 'md',
+  className = ''
 }) => {
   const getStatusIcon = (status: Status) => {
     switch (status) {
@@ -29,7 +31,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   };
 
   return (
-    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium status-${status}`}>
+    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium status-${status} ${className}`}>
       {getStatusIcon(status)}
       {showLabel && (
         <span className={size === 'sm' ? 'text-xs' : size === 'lg' ? 'text-sm' : 'text-xs'}>
