@@ -2,7 +2,7 @@
 import React from 'react';
 import { Category } from '../types';
 import { categories, getCategoryLabel } from '../data/mockData';
-import { FileImage, Map, Lightbulb, Trash2, Droplet, HelpCircle } from 'lucide-react';
+import { FileImage, Map, Lightbulb, Trash2, Droplet, HelpCircle, Car, Shield } from 'lucide-react';
 
 interface CategoryBadgeProps {
   category: Category;
@@ -25,6 +25,11 @@ const CategoryBadge: React.FC<CategoryBadgeProps> = ({
         return <Trash2 className={size === 'sm' ? 'w-3 h-3' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'} />;
       case 'water':
         return <Droplet className={size === 'sm' ? 'w-3 h-3' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'} />;
+      case 'traffic':
+      case 'transport':
+        return <Car className={size === 'sm' ? 'w-3 h-3' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'} />;
+      case 'security':
+        return <Shield className={size === 'sm' ? 'w-3 h-3' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'} />;
       default:
         return <HelpCircle className={size === 'sm' ? 'w-3 h-3' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'} />;
     }

@@ -1,7 +1,8 @@
 
-import React from 'react';
-import { Bell, User, Menu } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bell, User, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import MainMenu from './MainMenu';
 
 interface AppHeaderProps {
   title?: string;
@@ -16,17 +17,28 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   showMenu = true,
   onMenuClick
 }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+    if (onMenuClick) onMenuClick();
+  };
+
   return (
     <header className="sticky top-0 z-10 bg-veilleur shadow-sm px-4 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {showMenu && (
             <button 
-              onClick={onMenuClick}
+              onClick={toggleMenu}
               className="p-1.5 rounded-full hover:bg-white/10 transition-colors"
               aria-label="Menu"
             >
-              <Menu className="w-5 h-5 text-white" />
+              {menuOpen ? (
+                <X className="w-5 h-5 text-white" />
+              ) : (
+                <Menu className="w-5 h-5 text-white" />
+              )}
             </button>
           )}
           {showBack ? (
@@ -38,6 +50,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             </Link>
           ) : (
             <h1 className="text-lg font-bold text-white">{title}</h1>
+          )}
+          
+          {menuOpen && (
+            <div className="absolute top-full left-0 w-full bg-white shadow-md">
+              <MainMenu onClose={() => setMenuOpen(false)} />
+            </div>
           )}
         </div>
         

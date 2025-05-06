@@ -1,13 +1,13 @@
-
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Camera, Image, MapPin, ChevronLeft, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Camera, Image, MapPin, ChevronLeft, AlertTriangle, CheckCircle, Car, Shield } from 'lucide-react';
 import AppHeader from '../components/AppHeader';
 import { categories } from '../data/mockData';
 import { Category } from '../types';
 
 const NewReportPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -15,11 +15,30 @@ const NewReportPage: React.FC = () => {
     description: '',
     imageUrl: '',
     locationName: 'Votre position actuelle', // Simulée
+    severity: '',
+    trafficImpact: '',
+    securityType: ''
   });
   
   const [formStep, setFormStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  
+  // Préremplir la catégorie si elle est spécifiée dans l'URL
+  useEffect(() => {
+    const category = searchParams.get('category');
+    const type = searchParams.get('type');
+    
+    if (category && Object.values(Category).includes(category as Category)) {
+      setFormData(prev => ({ 
+        ...prev, 
+        category: category as Category,
+        // Si un type spécifique est fourni pour la sécurité ou le trafic
+        securityType: category === 'security' && type ? type : prev.securityType,
+        trafficImpact: category === 'traffic' && type ? type : prev.trafficImpact
+      }));
+    }
+  }, [searchParams]);
   
   // Vérifier si le formulaire est valide pour passer à l'étape suivante
   const isStepValid = () => {
@@ -79,6 +98,94 @@ const NewReportPage: React.FC = () => {
     }, 1500);
   };
   
+  // Afficher les champs supplémentaires selon la catégorie
+  const renderCategorySpecificFields = () => {
+    switch(formData.category) {
+      case 'traffic':
+      case 'transport':
+        return (
+          <div className="mt-4">
+            <label htmlFor="trafficImpact" className="block text-sm font-medium text-gray-700 mb-1">
+              Impact sur la circulation
+            </label>
+            <select
+              id="trafficImpact"
+              name="trafficImpact"
+              value={formData.trafficImpact}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-veilleur focus:border-veilleur"
+            >
+              <option value="">Sélectionnez l'impact</option>
+              <option value="none">Aucun impact</option>
+              <option value="light">Impact léger</option>
+              <option value="moderate">Impact modéré</option>
+              <option value="severe">Impact sévère</option>
+            </select>
+            
+            <label htmlFor="severity" className="block text-sm font-medium text-gray-700 mb-1 mt-3">
+              Gravité
+            </label>
+            <select
+              id="severity"
+              name="severity"
+              value={formData.severity}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-veilleur focus:border-veilleur"
+            >
+              <option value="">Sélectionnez la gravité</option>
+              <option value="low">Faible</option>
+              <option value="medium">Moyenne</option>
+              <option value="high">Élevée</option>
+              <option value="critical">Critique</option>
+            </select>
+          </div>
+        );
+      
+      case 'security':
+        return (
+          <div className="mt-4">
+            <label htmlFor="securityType" className="block text-sm font-medium text-gray-700 mb-1">
+              Type de problème de sécurité
+            </label>
+            <select
+              id="securityType"
+              name="securityType"
+              value={formData.securityType}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-veilleur focus:border-veilleur"
+            >
+              <option value="">Sélectionnez le type</option>
+              <option value="theft">Vol</option>
+              <option value="assault">Agression</option>
+              <option value="vandalism">Vandalisme</option>
+              <option value="suspicious">Activité suspecte</option>
+              <option value="other">Autre</option>
+            </select>
+            
+            <label htmlFor="severity" className="block text-sm font-medium text-gray-700 mb-1 mt-3">
+              Gravité
+            </label>
+            <select
+              id="severity"
+              name="severity"
+              value={formData.severity}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-veilleur focus:border-veilleur"
+            >
+              <option value="">Sélectionnez la gravité</option>
+              <option value="low">Faible</option>
+              <option value="medium">Moyenne</option>
+              <option value="high">Élevée</option>
+              <option value="critical">Critique</option>
+            </select>
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
+  
   // Afficher l'étape correspondante
   const renderFormStep = () => {
     switch(formStep) {
@@ -104,8 +211,9 @@ const NewReportPage: React.FC = () => {
                       ? 'bg-veilleur-green text-white' 
                       : 'bg-gray-100 text-gray-600'
                   }`}>
-                    {/* Icon dynamique selon catégorie */}
-                    <MapPin className="w-6 h-6" />
+                    {category.id === 'traffic' ? <Car className="w-6 h-6" /> : 
+                     category.id === 'security' ? <Shield className="w-6 h-6" /> : 
+                     <MapPin className="w-6 h-6" />}
                   </div>
                   <span className={`font-medium ${
                     formData.category === category.id 
@@ -172,6 +280,9 @@ const NewReportPage: React.FC = () => {
                   required
                 />
               </div>
+              
+              {/* Nouveaux champs spécifiques à la catégorie */}
+              {renderCategorySpecificFields()}
             </div>
             
             <div className="mt-6 flex justify-between">
