@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Camera, Image, MapPin, ChevronLeft, AlertTriangle, CheckCircle, Car, Shield } from 'lucide-react';
 import AppHeader from '../components/AppHeader';
 import { categories } from '../data/mockData';
-import { Category } from '../types';
+import { Category, CategoryEnum } from '../types';
 
 const NewReportPage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ const NewReportPage: React.FC = () => {
     const category = searchParams.get('category');
     const type = searchParams.get('type');
     
-    if (category && Object.values(Category).includes(category as Category)) {
+    if (category && Object.values(CategoryEnum).includes(category as Category)) {
       setFormData(prev => ({ 
         ...prev, 
         category: category as Category,
@@ -96,6 +97,16 @@ const NewReportPage: React.FC = () => {
       setIsSubmitting(false);
       navigate('/report-success');
     }, 1500);
+  };
+  
+  // Vérifier si le formulaire est valide pour passer à l'étape suivante
+  const isStepValid = () => {
+    if (formStep === 1) {
+      return !!formData.category;
+    } else if (formStep === 2) {
+      return !!formData.title && formData.title.length >= 5 && !!formData.description;
+    }
+    return true;
   };
   
   // Afficher les champs supplémentaires selon la catégorie

@@ -1,4 +1,17 @@
+
 export type Category = 'road' | 'light' | 'trash' | 'water' | 'other' | 'traffic' | 'transport' | 'security';
+
+// Add this enum to use Category as a value
+export enum CategoryEnum {
+  road = 'road',
+  light = 'light',
+  trash = 'trash',
+  water = 'water',
+  other = 'other',
+  traffic = 'traffic',
+  transport = 'transport',
+  security = 'security'
+}
 
 export type Status = 'pending' | 'in-progress' | 'resolved';
 
