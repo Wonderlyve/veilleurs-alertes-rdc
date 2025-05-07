@@ -99,16 +99,6 @@ const NewReportPage: React.FC = () => {
     }, 1500);
   };
   
-  // Vérifier si le formulaire est valide pour passer à l'étape suivante
-  const isStepValid = () => {
-    if (formStep === 1) {
-      return !!formData.category;
-    } else if (formStep === 2) {
-      return !!formData.title && formData.title.length >= 5 && !!formData.description;
-    }
-    return true;
-  };
-  
   // Afficher les champs supplémentaires selon la catégorie
   const renderCategorySpecificFields = () => {
     switch(formData.category) {
